@@ -56,7 +56,7 @@ mvp.export = function exportFn(vectors) {
 };
 
 function _export(value){
-  var store = this;
+  var store = this;   // jshint ignore:line
   for (var i = 1; i + 1 < arguments.length; i++) {
     var vector = arguments[i];
     store = store[vector] || (store[vector] = makeStore());
