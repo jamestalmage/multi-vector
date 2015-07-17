@@ -7,7 +7,7 @@ describe('multi-vector', function() {
   var calls;
 
   beforeEach(function() {
-    mv = new MultiVector('a', 'b', 'c');
+    mv = new MultiVector(['a', 'b', 'c']);
     calls = [];
   });
 
@@ -33,7 +33,7 @@ describe('multi-vector', function() {
 
   it('can be constructed with without using new keyword', function() {
     /* jshint newcap:false */
-    mv = MultiVector('a', 'b', 'c');
+    mv = MultiVector(['a', 'b', 'c']);
     getSetTest();
     mv = MultiVector(['a', 'b', 'c']);
     getSetTest();
@@ -78,7 +78,7 @@ describe('multi-vector', function() {
   it('forEach with custom parameter ordering', function() {
     mv.set({a:'1', b:'2', c:'3'}, 'hello');
     mv.set({a:'1', b:'2', c:'4'}, 'howdy');
-    mv.forEach(logCalls, 'c', 'a', 'b');
+    mv.forEach(logCalls, ['c', 'a', 'b']);
 
     assert.deepEqual(
       [
@@ -96,6 +96,30 @@ describe('multi-vector', function() {
       [
         ['goodbye', '1', '3', '2'],
         ['howdy', '1', '4', '2']
+      ],
+      calls
+    );
+  });
+
+  it('forEach with less than full args', function() {
+    mv.set({a:'1', b:'2', c:'3'}, 'hello');
+    mv.set({a:'1', b:'2', c:'4'}, 'howdy');
+    mv.forEach(logCalls, ['b', 'a']);
+
+    assert.deepEqual(
+      [
+        [{'3': 'hello', '4': 'howdy'}, '2', '1']
+      ],
+      calls
+    );
+
+    calls = [];
+    mv.forEach(logCalls, ['c']);
+
+    assert.deepEqual(
+      [
+        [{'1': {'2': 'hello'}}, '3'],
+        [{'1': {'2': 'howdy'}}, '4']
       ],
       calls
     );
@@ -145,7 +169,7 @@ describe('multi-vector', function() {
           }
         }
       },
-      mv.export('b', 'a', 'c')
+      mv.export(['b', 'a', 'c'])
     );
 
     mv.set({a:'1', b:'2', c:'3'}, 'goodbye');
@@ -164,6 +188,43 @@ describe('multi-vector', function() {
         }
       },
       mv.export(['c', 'a', 'b'])
+    );
+  });
+
+  it('export with less than full parameter list', function() {
+    mv.set({a:'1', b:'2', c:'3'}, 'hello');
+    mv.set({a:'1', b:'2', c:'4'}, 'howdy');
+
+    assert.deepEqual(
+      {
+        '2': {
+          '3': {
+            '1': 'hello'
+          },
+          '4': {
+            '1': 'howdy'
+          }
+        }
+      },
+      mv.export(['b', 'c'])
+    );
+
+    assert.deepEqual(
+      {
+        '2': {
+          '1': {
+            '3': 'hello',
+            '4': 'howdy'
+          }
+        }
+      },
+      mv.export(['b'])
+    );
+
+    assert.strictEqual(
+      mv._store[1][2],
+      mv.export(['b'])[2][1],
+      'inner object does not get copied'
     );
   });
 });

@@ -4,9 +4,6 @@ module.exports = MultiVector;
 var assert = require('assert');
 
 function MultiVector(vectors) {
-  if (arguments.length > 1) {
-    vectors = Array.prototype.slice.call(arguments);
-  }
   if (!(this instanceof MultiVector)) {
     return new MultiVector(vectors);
   }
@@ -49,9 +46,12 @@ mvp.set = function set(vectorObj, value) {
 };
 
 mvp.export = function exportFn(vectors) {
-  vectors = this._normalizeArgs(arguments, 0);
+  vectors = validateVectorsArray(vectors, this._vectors);
+
+  var indexes = vectors.map(indexMap, this);
+  addIndexHoles(this._vectors.length-1, indexes);
   var copy = makeStore();
-  this.forEach(_export.bind(copy), vectors);
+  _forEach(_export.bind(copy), indexes, this._forEachFns, this._store);
   return copy;
 };
 
@@ -66,34 +66,45 @@ function _export(value){
 
 mvp.forEach = function(fn, vectors) {
   assert.equal('function', typeof fn);
-  vectors = this._normalizeArgs(arguments, 1);
+  vectors = validateVectorsArray(vectors, this._vectors);
 
-  var indexes = vectors.map(function(vector) {
-    return this._vectorIndex[vector];
-  }, this);
+  var indexes = vectors.map(indexMap, this);
 
+  var store = this._store;
+  var holes = [];
+  addIndexHoles(this._vectors.length-1, indexes, holes);
+  if (holes.length) {
+    var copy = makeStore();
+    _forEach(_export.bind(copy), indexes.concat(holes), this._forEachFns, store);
+    store = copy;
+    indexes = fillArray(indexes.length);
+  }
+
+  _forEach(fn, indexes, this._forEachFns, store);
+};
+
+function _forEach(fn, indexes, fnStore, store) {
   var fnKey = indexes.join(',');
 
   /* jshint evil:true */
-  var fe = this._forEachFns[fnKey] ||
-    (this._forEachFns[fnKey] = new Function('fn', generateForEachCode(indexes)));
+  var fe = fnStore[fnKey] ||
+    (fnStore[fnKey] = new Function('fn', 'store', generateForEachCode(indexes)));
   /* jshint evil:false */
 
-  fe.call(this, fn);
-};
+  fe(fn, store);
+}
 
-mvp._normalizeArgs = function(args, i) {
-  var vectors;
-  if (args.length > i + 1) {
-    vectors = Array.prototype.slice.call(args, i);
-  } else if (!args[i] || args[i] === this._vectors) {
-    return this._vectors;
-  } else {
-    vectors = args[i];
+function indexMap(vector) {
+  return this._vectorIndex[vector];   //jshint ignore: line
+}
+
+function validateVectorsArray(array, defaultArray) {
+  if (array) {
+    array.forEach(validateVector);
+    return array;
   }
-  vectors.forEach(validateVector);
-  return vectors;
-};
+  return defaultArray;
+}
 
 function generateForEachCode(indexes) {
   var lines = [];
@@ -123,7 +134,7 @@ function generateForEachCode(indexes) {
 }
 
 function prevStore(i) {
-  return i === 0 ? 'this._store' : 's' + (i-1) + '[v' + (i-1) + ']';
+  return i === 0 ? 'store' : 's' + (i-1) + '[v' + (i-1) + ']';
 }
 
 mvp.validateVectorObject = function validateVectorObject(vectorObject, argName) {
@@ -151,6 +162,35 @@ function validateVector(vector) {
 
 function makeStore() {
   return Object.create(storeProto);
+}
+
+function addIndexHoles(maxIndex, indexesArray, target) {
+  var last = lastContainedIndex(maxIndex, indexesArray);
+  _addIndexHoles(last, indexesArray, target);
+}
+
+function _addIndexHoles(last, indexesArray, target) {
+  target = target || indexesArray;
+  for (var i = 0; i < last; i++) {
+    if (indexesArray.indexOf(i) === -1) {
+      target.push(i);
+    }
+  }
+}
+
+function lastContainedIndex(maxIndex, indexesArray) {
+  while(indexesArray.indexOf(maxIndex) === -1) {
+    maxIndex --;
+  }
+  return maxIndex;
+}
+
+function fillArray(len) {
+  var arr = new Array(len);
+  for (var i = 0; i < len; i ++) {
+    arr[i] = i;
+  }
+  return arr;
 }
 
 var storeProto = Object.create(null);
