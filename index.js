@@ -50,23 +50,19 @@ mvp.set = function set(vectorObj, value) {
 
 mvp.export = function exportFn(vectors) {
   vectors = this._normalizeArgs(arguments, 0);
-
-  var indexes = vectors.map(function(vector) {
-    return this._vectorIndex[vector];
-  }, this);
-  var len = indexes.length - 1;
-
   var copy = makeStore();
-  this.forEach(function(value){
-    var store = copy;
-    for (var i = 0; i < len; i++) {
-      var vector = arguments[indexes[i] + 1];
-      store = store[vector] || (store[vector] = makeStore());
-    }
-    store[arguments[indexes[len] + 1]] = value;
-  });
+  this.forEach(_export.bind(copy), vectors);
   return copy;
 };
+
+function _export(value){
+  var store = this;
+  for (var i = 1; i + 1 < arguments.length; i++) {
+    var vector = arguments[i];
+    store = store[vector] || (store[vector] = makeStore());
+  }
+  store[arguments[arguments.length-1]] = value;
+}
 
 mvp.forEach = function(fn, vectors) {
   assert.equal('function', typeof fn);
@@ -90,7 +86,7 @@ mvp._normalizeArgs = function(args, i) {
   var vectors;
   if (args.length > i + 1) {
     vectors = Array.prototype.slice.call(args, i);
-  } else if (!args[i]) {
+  } else if (!args[i] || args[i] === this._vectors) {
     return this._vectors;
   } else {
     vectors = args[i];
