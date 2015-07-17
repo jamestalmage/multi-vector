@@ -1,6 +1,6 @@
 {
   "name": "multi-vector",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "easily iterate and restructure deeply nested trees",
   "license": "MIT",
   "repository": "jamestalmage/multi-vector",
