@@ -46,17 +46,16 @@ mv.export();
   }
 }*/
 
-
 mv.export(['c', 'a', 'b']);  // reshape or pivot the exported data
 /*{
   '3': {
-    '2': {
-      'foo': 'hello'
+    'foo': {
+      '2': 'hello'
     }
   },
   '4': {
-    '2': {
-      'foo': 'howdy'
+    'foo': {
+      '2': 'howdy'
     }
   }
 }*/
