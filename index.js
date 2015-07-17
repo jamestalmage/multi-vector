@@ -49,14 +49,7 @@ mvp.set = function set(vectorObj, value) {
 };
 
 mvp.export = function exportFn(vectors) {
-  if (arguments.length > 1) {
-    vectors = Array.prototype.slice.call(arguments);
-    vectors.forEach(validateVector);
-  } else if (!vectors) {
-    vectors = this._vectors;
-  } else {
-    vectors.forEach(validateVector);
-  }
+  vectors = this._normalizeArgs(arguments, 0);
 
   var indexes = vectors.map(function(vector) {
     return this._vectorIndex[vector];
@@ -77,14 +70,7 @@ mvp.export = function exportFn(vectors) {
 
 mvp.forEach = function(fn, vectors) {
   assert.equal('function', typeof fn);
-  if (arguments.length > 2) {
-    vectors = Array.prototype.slice.call(arguments, 1);
-    vectors.forEach(validateVector);
-  } else if (!vectors) {
-    vectors = this._vectors;
-  } else {
-    vectors.forEach(validateVector);
-  }
+  vectors = this._normalizeArgs(arguments, 1);
 
   var indexes = vectors.map(function(vector) {
     return this._vectorIndex[vector];
@@ -98,6 +84,19 @@ mvp.forEach = function(fn, vectors) {
   /* jshint evil:false */
 
   fe.call(this, fn);
+};
+
+mvp._normalizeArgs = function(args, i) {
+  var vectors;
+  if (args.length > i + 1) {
+    vectors = Array.prototype.slice.call(args, i);
+  } else if (!args[i]) {
+    return this._vectors;
+  } else {
+    vectors = args[i];
+  }
+  vectors.forEach(validateVector);
+  return vectors;
 };
 
 function generateForEachCode(indexes) {
