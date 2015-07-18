@@ -49,14 +49,14 @@ describe('multi-vector', function() {
   it('#sub allows you to reorganize the fetched tree - in order', function() {
     assert.deepEqual(
       {'3': {'2': 'hello'}, '4': {'2': 'howdy'}},
-      mv.sub({a:'1'}, ['a'],['c', 'b'])
+      mv.sub({a:'1'}, ['a'], ['c', 'b'])
     );
   });
 
   xit('#sub allows you to reorganize the fetched tree - out of order', function() {
     assert.deepEqual(
       {'3': {'1': 'hello'}, '4': {'1': 'howdy'}},
-      mv.sub({b:'2'}, ['b'],['c', 'a'])
+      mv.sub({b:'2'}, ['b'], ['c', 'a'])
     );
   });
 

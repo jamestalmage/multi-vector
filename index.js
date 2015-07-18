@@ -2,6 +2,7 @@
 module.exports = MultiVector;
 
 var assert = require('assert');
+var _forEach = require('./lib/for-each-raw');
 
 function MultiVector(vectors) {
   if (!(this instanceof MultiVector)) {
@@ -10,7 +11,6 @@ function MultiVector(vectors) {
 
   this._store = makeStore();
   this._vectorIndex = makeStore();
-  this._forEachFns = makeStore();
   this._vectors = vectors.map(function(vector, index) {
     validateVector(vector);
     this._vectorIndex[vector] = index;
@@ -31,10 +31,11 @@ mvp.get = function get(vectorObj) {
 mvp.sub = function sub(vectorObj, vectors, structure) {
   var subTree = _get(vectorObj, vectors, this._store);
   if (structure) {
-    var indexes = structure.map(indexMap, this).map(function(x){return x - vectors.length;});
-    addIndexHoles(this._vectors.length-1, indexes);
+    var indexes = structure.map(indexMap, this)
+      .map(function(x) {return x - vectors.length;});
+    addIndexHoles(this._vectors.length - 1, indexes);
     var copy = makeStore();
-    _forEach(_export.bind(copy), indexes, this._forEachFns, subTree);
+    _forEach(_export.bind(copy), indexes, subTree);
     return copy;
   }
   return subTree;
@@ -65,19 +66,19 @@ mvp.export = function exportFn(vectors) {
   vectors = validateVectorsArray(vectors, this._vectors);
 
   var indexes = vectors.map(indexMap, this);
-  addIndexHoles(this._vectors.length-1, indexes);
+  addIndexHoles(this._vectors.length - 1, indexes);
   var copy = makeStore();
-  _forEach(_export.bind(copy), indexes, this._forEachFns, this._store);
+  _forEach(_export.bind(copy), indexes, this._store);
   return copy;
 };
 
-function _export(value){
+function _export(value) {
   var store = this;   // jshint ignore:line
   for (var i = 1; i + 1 < arguments.length; i++) {
     var vector = arguments[i];
     store = store[vector] || (store[vector] = makeStore());
   }
-  store[arguments[arguments.length-1]] = value;
+  store[arguments[arguments.length - 1]] = value;
 }
 
 mvp.forEach = function(fn, vectors) {
@@ -88,33 +89,16 @@ mvp.forEach = function(fn, vectors) {
 
   var store = this._store;
   var holes = [];
-  addIndexHoles(this._vectors.length-1, indexes, holes);
+  addIndexHoles(this._vectors.length - 1, indexes, holes);
   if (holes.length) {
     var copy = makeStore();
-    _forEach(_export.bind(copy), indexes.concat(holes), this._forEachFns, store);
+    _forEach(_export.bind(copy), indexes.concat(holes), store);
     store = copy;
     indexes = fillArray(indexes.length);
   }
 
-  _forEach(fn, indexes, this._forEachFns, store);
+  _forEach(fn, indexes, store);
 };
-
-function _forEach(fn, indexes, fnStore, store) {
- /*
-  var fnKey = indexes.join(',');
-  // jshint evil:true
-  var fe = fnStore[fnKey] ||
-    (fnStore[fnKey] = new Function('fn', 'store', generateForEachCode(indexes)));
-  // jshint evil:false
-
-  fe(fn, store);  */
-
-  var rawIndexes = [];
-  for(var i = 0; i < indexes.length; i++) {
-    rawIndexes[indexes[i]] = i;
-  }
-  rawForEach(fn, store, rawIndexes, [], 0);
-}
 
 function indexMap(vector) {
   return this._vectorIndex[vector];   //jshint ignore: line
@@ -128,54 +112,8 @@ function validateVectorsArray(array, defaultArray) {
   return defaultArray;
 }
 
-function generateForEachCode(indexes) {
-  var lines = [];
-  var len = indexes.length;
-  var i;
-  for (i = 0; i < len; i++) {
-    lines.push(
-      'var s' + i + ' = ' + prevStore(i) + ';',
-      'for (var v' + i + ' in s' + i + ') {',
-        'if (s' + i + '.hasOwnProperty(v' + i + ')) {'
-    );
-  }
-  lines.push(
-    'var s' + len + ' = ' + prevStore(len) + ';'
-  );
-  var varNames = [];
-  for (i = 0; i < len; i ++) {
-    varNames.push('v' + indexes[i]);
-  }
-  lines.push(
-    'fn(s' + len + ', ' + varNames.join(', ') + ');'
-  );
-  for (i = 0; i < len; i ++) {
-    lines.push('}}');
-  }
-  return lines.join('\n');
-}
-
-function rawForEach(fn, store, indexes, values, i) {
-  if (i >= indexes.length) {
-    values[0] = null;
-    values[0] = store;
-    return fn.apply(null, values);
-  }
-  var nextI = i + 1;
-  var valueIndex = indexes[i] + 1;
-  for (var v in store) {
-    if (store.hasOwnProperty(v)) {
-      values[valueIndex] = v;
-      rawForEach(fn, store[v], indexes, values, nextI);
-    }
-  }
-}
-
-function prevStore(i) {
-  return i === 0 ? 'store' : 's' + (i-1) + '[v' + (i-1) + ']';
-}
-
-mvp.validateVectorObject = function validateVectorObject(vectorObject, argName) {
+mvp.validateVectorObject =
+function validateVectorObject(vectorObject, argName) {
   var vectors = this._vectors;
   for (var i = 0, len = vectors.length; i < len; ++i) {
     var requiredVector = vectors[i];
@@ -184,7 +122,9 @@ mvp.validateVectorObject = function validateVectorObject(vectorObject, argName) 
       assert.fail(
         foundType,
         'string|number',
-        (argName || 'vectorObject') + ' does not have a string/number value for ' + requiredVector
+        (argName || 'vectorObject') +
+        ' does not have a string/number value for ' +
+        requiredVector
       );
     }
   }
@@ -218,7 +158,7 @@ function _addIndexHoles(last, indexesArray, target) {
 }
 
 function lastContainedIndex(maxIndex, indexesArray) {
-  while(indexesArray.indexOf(maxIndex) === -1) {
+  while (indexesArray.indexOf(maxIndex) === -1) {
     maxIndex --;
   }
   return maxIndex;

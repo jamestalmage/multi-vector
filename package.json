@@ -18,7 +18,7 @@
     "lint": "jshint *.js lib/*.js lib/**/*.js test/*.js test/**/*.js",
     "debug": "mocha",
     "watch": "mocha -w",
-    "style": "jscs ./**/*.js && jscs ./test/** --config=./test/.jscsrc"
+    "style": "jscs *.js ./**/*.js --config=./.jscsrc && jscs ./test/** --config=./test/.jscsrc"
   },
   "files": [
     "index.js"
