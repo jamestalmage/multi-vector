@@ -28,8 +28,16 @@ mvp.get = function get(vectorObj) {
   );
 };
 
-mvp.sub = function sub(vectorObj, vectors) {
-  return _get(vectorObj, vectors, this._store);
+mvp.sub = function sub(vectorObj, vectors, structure) {
+  var subTree = _get(vectorObj, vectors, this._store);
+  if (structure) {
+    var indexes = structure.map(indexMap, this).map(function(x){return x - vectors.length});
+    addIndexHoles(this._vectors.length-1, indexes);
+    var copy = makeStore();
+    _forEach(_export.bind(copy), indexes, this._forEachFns, subTree);
+    return copy;
+  }
+  return subTree;
 };
 
 function _get(vectorObj, vectors, store) {
