@@ -97,11 +97,11 @@ describe('multi-vector', function() {
     mv.forEach(logCalls, ['c', 'a', 'b']);
 
     assert.deepEqual(
+      calls,
       [
         ['hello', '3', '1', '2'],
         ['howdy', '4', '1', '2']
-      ],
-      calls
+      ]
     );
 
     calls = [];
@@ -109,11 +109,11 @@ describe('multi-vector', function() {
     mv.forEach(logCalls, ['a', 'c', 'b']);
 
     assert.deepEqual(
+      calls,
       [
         ['goodbye', '1', '3', '2'],
         ['howdy', '1', '4', '2']
-      ],
-      calls
+      ]
     );
   });
 
@@ -121,21 +121,21 @@ describe('multi-vector', function() {
     mv.forEach(logCalls, ['b', 'a']);
 
     assert.deepEqual(
+      calls,
       [
         [{'3': 'hello', '4': 'howdy'}, '2', '1']
-      ],
-      calls
+      ]
     );
 
     calls = [];
     mv.forEach(logCalls, ['c']);
 
     assert.deepEqual(
+      calls,
       [
         [{'1': {'2': 'hello'}}, '3'],
         [{'1': {'2': 'howdy'}}, '4']
-      ],
-      calls
+      ]
     );
   });
 
@@ -201,6 +201,7 @@ describe('multi-vector', function() {
 
   it('export with less than full parameter list', function() {
     assert.deepEqual(
+      mv.export(['b', 'c']),
       {
         '2': {
           '3': {
@@ -210,11 +211,11 @@ describe('multi-vector', function() {
             '1': 'howdy'
           }
         }
-      },
-      mv.export(['b', 'c'])
+      }
     );
 
     assert.deepEqual(
+      mv.export(['b']),
       {
         '2': {
           '1': {
@@ -222,14 +223,13 @@ describe('multi-vector', function() {
             '4': 'howdy'
           }
         }
-      },
-      mv.export(['b'])
+      }
     );
 
     assert.strictEqual(
-      mv._store[1][2],
       mv.export(['b'])[2][1],
-      'inner object does not get copied'
+      mv._store[1][2],
+      'inner object should be same instance'
     );
   });
 });

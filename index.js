@@ -31,7 +31,7 @@ mvp.get = function get(vectorObj) {
 mvp.sub = function sub(vectorObj, vectors, structure) {
   var subTree = _get(vectorObj, vectors, this._store);
   if (structure) {
-    var indexes = structure.map(indexMap, this).map(function(x){return x - vectors.length});
+    var indexes = structure.map(indexMap, this).map(function(x){return x - vectors.length;});
     addIndexHoles(this._vectors.length-1, indexes);
     var copy = makeStore();
     _forEach(_export.bind(copy), indexes, this._forEachFns, subTree);
@@ -100,14 +100,20 @@ mvp.forEach = function(fn, vectors) {
 };
 
 function _forEach(fn, indexes, fnStore, store) {
+ /*
   var fnKey = indexes.join(',');
-
-  /* jshint evil:true */
+  // jshint evil:true
   var fe = fnStore[fnKey] ||
     (fnStore[fnKey] = new Function('fn', 'store', generateForEachCode(indexes)));
-  /* jshint evil:false */
+  // jshint evil:false
 
-  fe(fn, store);
+  fe(fn, store);  */
+
+  var rawIndexes = [];
+  for(var i = 0; i < indexes.length; i++) {
+    rawIndexes[indexes[i]] = i;
+  }
+  rawForEach(fn, store, rawIndexes, [], 0);
 }
 
 function indexMap(vector) {
@@ -147,6 +153,22 @@ function generateForEachCode(indexes) {
     lines.push('}}');
   }
   return lines.join('\n');
+}
+
+function rawForEach(fn, store, indexes, values, i) {
+  if (i >= indexes.length) {
+    values[0] = null;
+    values[0] = store;
+    return fn.apply(null, values);
+  }
+  var nextI = i + 1;
+  var valueIndex = indexes[i] + 1;
+  for (var v in store) {
+    if (store.hasOwnProperty(v)) {
+      values[valueIndex] = v;
+      rawForEach(fn, store[v], indexes, values, nextI);
+    }
+  }
 }
 
 function prevStore(i) {
