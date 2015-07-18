@@ -33,6 +33,15 @@ describe('multi-vector', function() {
     /* jshint newcap:true */
   });
 
+  it('#sub grabs a subtree', function() {
+    mv.set({a:'1', b:'2', c:'3'}, 'hello');
+    mv.set({a:'1', b:'2', c:'4'}, 'howdy');
+    assert.deepEqual(
+      {'2': {'3': 'hello', '4': 'howdy'}},
+      mv.sub({a:'1'}, ['a'])
+    );
+  });
+
   it('will validate vectorObject input', function() {
     assert.throws(function() {
       mv.get({a:'1'});

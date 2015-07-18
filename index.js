@@ -21,15 +21,23 @@ function MultiVector(vectors) {
 var mvp = MultiVector.prototype;
 
 mvp.get = function get(vectorObj) {
-  this.validateVectorObject(vectorObj);
-  var vectors = this._vectors;
-  var store = this._store;
+  return _get(
+    this.validateVectorObject(vectorObj),
+    this._vectors,
+    this._store
+  );
+};
 
+mvp.sub = function sub(vectorObj, vectors) {
+  return _get(vectorObj, vectors, this._store);
+};
+
+function _get(vectorObj, vectors, store) {
   for (var i = 0, len = vectors.length; store && i < len; ++i) {
     store = store[vectorObj[vectors[i]]];
   }
   return store;
-};
+}
 
 mvp.set = function set(vectorObj, value) {
   this.validateVectorObject(vectorObj);
@@ -150,6 +158,7 @@ mvp.validateVectorObject = function validateVectorObject(vectorObject, argName) 
       );
     }
   }
+  return vectorObject;
 };
 
 function validateVector(vector) {
