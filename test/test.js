@@ -8,6 +8,8 @@ describe('multi-vector', function() {
 
   beforeEach(function() {
     mv = new MultiVector(['a', 'b', 'c']);
+    mv.set({a:'1', b:'2', c:'3'}, 'hello');
+    mv.set({a:'1', b:'2', c:'4'}, 'howdy');
     calls = [];
   });
 
@@ -16,8 +18,6 @@ describe('multi-vector', function() {
   }
 
   function getSetTest() {
-    mv.set({a:'1', b:'2', c:'3'}, 'hello');
-    mv.set({a:'1', b:'2', c:'4'}, 'howdy');
     assert.equal('hello', mv.get({a:'1', b:'2', c:'3'}));
     mv.set({a:'1', b:'2', c:'3'}, 'goodbye');
     assert.equal('goodbye', mv.get({a:'1', b:'2', c:'3'}));
@@ -29,13 +29,13 @@ describe('multi-vector', function() {
   it('can be constructed with without using new keyword', function() {
     /* jshint newcap:false */
     mv = MultiVector(['a', 'b', 'c']);
+    mv.set({a:'1', b:'2', c:'3'}, 'hello');
+    mv.set({a:'1', b:'2', c:'4'}, 'howdy');
     getSetTest();
     /* jshint newcap:true */
   });
 
   it('#sub grabs a subtree', function() {
-    mv.set({a:'1', b:'2', c:'3'}, 'hello');
-    mv.set({a:'1', b:'2', c:'4'}, 'howdy');
     assert.deepEqual(
       {'2': {'3': 'hello', '4': 'howdy'}},
       mv.sub({a:'1'}, ['a'])
@@ -52,8 +52,6 @@ describe('multi-vector', function() {
   });
 
   it('forEach', function() {
-    mv.set({a:'1', b:'2', c:'3'}, 'hello');
-    mv.set({a:'1', b:'2', c:'4'}, 'howdy');
     mv.forEach(logCalls);
 
     assert.deepEqual(
@@ -78,8 +76,6 @@ describe('multi-vector', function() {
   });
 
   it('forEach with custom parameter ordering', function() {
-    mv.set({a:'1', b:'2', c:'3'}, 'hello');
-    mv.set({a:'1', b:'2', c:'4'}, 'howdy');
     mv.forEach(logCalls, ['c', 'a', 'b']);
 
     assert.deepEqual(
@@ -104,8 +100,6 @@ describe('multi-vector', function() {
   });
 
   it('forEach with less than full args', function() {
-    mv.set({a:'1', b:'2', c:'3'}, 'hello');
-    mv.set({a:'1', b:'2', c:'4'}, 'howdy');
     mv.forEach(logCalls, ['b', 'a']);
 
     assert.deepEqual(
@@ -128,9 +122,6 @@ describe('multi-vector', function() {
   });
 
   it('export', function() {
-    mv.set({a:'1', b:'2', c:'3'}, 'hello');
-    mv.set({a:'1', b:'2', c:'4'}, 'howdy');
-
     assert.deepEqual(
       {
         '1': {
@@ -159,9 +150,6 @@ describe('multi-vector', function() {
   });
 
   it('export with custom parameter ordering', function() {
-    mv.set({a:'1', b:'2', c:'3'}, 'hello');
-    mv.set({a:'1', b:'2', c:'4'}, 'howdy');
-
     assert.deepEqual(
       {
         '2': {
@@ -194,9 +182,6 @@ describe('multi-vector', function() {
   });
 
   it('export with less than full parameter list', function() {
-    mv.set({a:'1', b:'2', c:'3'}, 'hello');
-    mv.set({a:'1', b:'2', c:'4'}, 'howdy');
-
     assert.deepEqual(
       {
         '2': {
