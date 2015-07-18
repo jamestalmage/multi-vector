@@ -26,15 +26,8 @@ describe('multi-vector', function() {
 
   it('has get & set methods that work as you would expect', getSetTest);
 
-  it('can be constructed with a single array argument', function() {
-    mv = new MultiVector(['a', 'b', 'c']);
-    getSetTest();
-  });
-
   it('can be constructed with without using new keyword', function() {
     /* jshint newcap:false */
-    mv = MultiVector(['a', 'b', 'c']);
-    getSetTest();
     mv = MultiVector(['a', 'b', 'c']);
     getSetTest();
     /* jshint newcap:true */
