@@ -23,27 +23,40 @@ module.exports = function(_forEach) {
     return _get(
       this.validateVectorObject(vectorObj),
       this._vectors,
+      0,
+      this._vectors.length,
       this._store
     );
   };
 
-  mvp.sub = function sub(vectorObj, vectors, structure) {
-    var subTree = _get(vectorObj, vectors, this._store);
-    if (structure) {
-      var indexes = structure.map(indexMap, this)
-        .map(function(x) {
-          return x - vectors.length;
-        });
-      addIndexHoles(this._vectors.length - 1, indexes);
-      var copy = makeStore();
-      _forEach(_export.bind(copy), indexes, subTree);
-      return copy;
+  mvp.sub = function sub(vectorObj, filterVectors, structure) {
+    var filterIndexes = filterVectors.map(indexMap, this);
+    var straightGet = 0;
+    while (filterIndexes.indexOf(straightGet) !== -1) {
+      straightGet++;
     }
-    return subTree;
+    var store = _get(vectorObj, filterVectors, 0, straightGet, this._store);
+    var indexes = filterIndexes;
+    if (structure && structure.length) {
+      indexes = filterIndexes.concat(structure.map(indexMap, this));
+    }
+    if (straightGet < indexes.length) {
+      addIndexHoles(this._vectors.length - 1, indexes);
+      indexes = indexes.slice(straightGet)
+        .map(function(x) {
+          return x - straightGet;
+        });
+      var copy = makeStore();
+      _forEach(_export.bind(copy), indexes, store);
+      store = copy;
+    }
+    return _get(
+      vectorObj, filterVectors, straightGet, filterVectors.length, store
+    );
   };
 
-  function _get(vectorObj, vectors, store) {
-    for (var i = 0, len = vectors.length; store && i < len; ++i) {
+  function _get(vectorObj, vectors, start, len, store) {
+    for (var i = start; store && i < len; ++i) {
       store = store[vectorObj[vectors[i]]];
     }
     return store;

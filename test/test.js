@@ -58,7 +58,7 @@ function testDecl(desc, _forEachImplementation) {
       );
     });
 
-    xit('#sub allows you to reorganize the fetched tree - out of order', function() {
+    it('#sub allows you to reorganize the fetched tree - out of order', function() {
       assert.deepEqual(
         {'3': {'1': 'hello'}, '4': {'1': 'howdy'}},
         mv.sub({b:'2'}, ['b'], ['c', 'a'])
