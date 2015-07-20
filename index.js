@@ -1,5 +1,5 @@
 'use strict';
 
-module.exports = require('./multi-vector')(
+module.exports = require('./lib/multi-vector')(
   require('./lib/for-each-raw')
 );

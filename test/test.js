@@ -5,7 +5,7 @@ testDecl('raw', require('../lib/for-each-raw'));
 testDecl('generated', require('../lib/for-each-generator'));
 
 function testDecl(desc, _forEachImplementation) {
-  var MultiVector = require('../multi-vector')(_forEachImplementation);
+  var MultiVector = require('../lib/multi-vector')(_forEachImplementation);
 
   describe('multi-vector (' + desc + ')', function() {
     var mv;
