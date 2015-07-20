@@ -9,24 +9,54 @@ function testDecl(desc, _forEachImplementation) {
 
   describe('multi-vector (' + desc + ')', function() {
     var mv;
+    var mv2;
     var calls;
+
+    function setup() {
+      mv.set({a:'1', b:'2', c:'3'}, 'hello');
+      mv.set({a:'1', b:'2', c:'4'}, 'howdy');
+
+      var arr = [1, 2, 3, 4];
+
+      arr.forEach(function(a) {
+        arr.forEach(function(b) {
+          arr.forEach(function(c) {
+            arr.forEach(function(d) {
+              mv2.set(
+                {a:a, b:b, c:c, d:d},
+                'a' + a + 'b' + b + 'c' + c + 'd' + d
+              );
+            });
+          });
+        });
+      });
+
+      calls = [];
+    }
 
     beforeEach(function() {
       mv = new MultiVector(['a', 'b', 'c']);
-      mv.set({a:'1', b:'2', c:'3'}, 'hello');
-      mv.set({a:'1', b:'2', c:'4'}, 'howdy');
-      calls = [];
+      mv2 = new MultiVector(['a', 'b', 'c', 'd']);
+      setup();
     });
 
     function logCalls() {
       calls.push(Array.prototype.slice.call(arguments));
     }
 
+    logCalls.reset = function() {
+      calls = [];
+      return logCalls;
+    };
+
     function getSetTest() {
       assert.equal('hello', mv.get({a:'1', b:'2', c:'3'}));
       mv.set({a:'1', b:'2', c:'3'}, 'goodbye');
       assert.equal('goodbye', mv.get({a:'1', b:'2', c:'3'}));
       assert.equal('howdy', mv.get({a:'1', b:'2', c:'4'}));
+
+      assert.equal('a1b2c3d4', mv2.get({a:1, b:2, c:3, d:4}));
+      assert.equal('a2b2c3d2', mv2.get({a:2, b:2, c:3, d:2}));
     }
 
     it('has get & set methods that work as you would expect', getSetTest);
@@ -34,8 +64,8 @@ function testDecl(desc, _forEachImplementation) {
     it('can be constructed with without using new keyword', function() {
       /* jshint newcap:false */
       mv = MultiVector(['a', 'b', 'c']);
-      mv.set({a:'1', b:'2', c:'3'}, 'hello');
-      mv.set({a:'1', b:'2', c:'4'}, 'howdy');
+      mv2 = MultiVector(['a', 'b', 'c', 'd']);
+      setup();
       getSetTest();
       /* jshint newcap:true */
     });
@@ -49,6 +79,27 @@ function testDecl(desc, _forEachImplementation) {
         {'3': 'hello', '4': 'howdy'},
         mv.sub({a:'1', b:'2'}, ['a', 'b'])
       );
+
+      assert.deepEqual(
+        mv2.sub({a:1, b:1, c:1}, ['a', 'b', 'c']),
+        {
+          '1': 'a1b1c1d1',
+          '2': 'a1b1c1d2',
+          '3': 'a1b1c1d3',
+          '4': 'a1b1c1d4'
+        }
+      );
+
+      assert.deepEqual(
+        mv2.sub({a:1, b:2}, ['a', 'b']),
+        [1, 2, 3, 4].reduce(function(obj, c) {
+          obj[c] = [1, 2, 3, 4].reduce(function(obj, d) {
+            obj[d] = 'a1b2c' + c + 'd' + d;
+            return obj;
+          }, {});
+          return obj;
+        }, {})
+      );
     });
 
     it('#sub allows you to reorganize the fetched tree - in order', function() {
@@ -56,12 +107,34 @@ function testDecl(desc, _forEachImplementation) {
         {'3': {'2': 'hello'}, '4': {'2': 'howdy'}},
         mv.sub({a:'1'}, ['a'], ['c', 'b'])
       );
+
+      assert.deepEqual(
+        mv2.sub({a:3, b:3}, ['a', 'b'], ['d', 'c']),
+        [1, 2, 3, 4].reduce(function(obj, d) {
+          obj[d] = [1, 2, 3, 4].reduce(function(obj, c) {
+            obj[c] = 'a3b3c' + c + 'd' + d;
+            return obj;
+          }, {});
+          return obj;
+        }, {})
+      );
     });
 
     it('#sub allows you to reorganize the fetched tree - out of order', function() {
       assert.deepEqual(
         {'3': {'1': 'hello'}, '4': {'1': 'howdy'}},
         mv.sub({b:'2'}, ['b'], ['c', 'a'])
+      );
+
+      assert.deepEqual(
+        mv2.sub({c:2, b:1}, ['c', 'b'], ['d', 'a']),
+        [1, 2, 3, 4].reduce(function(obj, d) {
+          obj[d] = [1, 2, 3, 4].reduce(function(obj, a) {
+            obj[a] = 'a' + a + 'b1c2d' + d;
+            return obj;
+          }, {});
+          return obj;
+        }, {})
       );
     });
 
